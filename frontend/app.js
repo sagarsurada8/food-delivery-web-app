@@ -1,4 +1,7 @@
-const API_BASE = "http://localhost:8080/api";
+// Change the second URL to your deployed backend URL (e.g. Render) once it is live!
+const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ? "http://localhost:8080/api"
+  : "https://food-delivery-web-app-lhb3.onrender.com";
 
 // Application State
 let state = {
