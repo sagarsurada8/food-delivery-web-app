@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodExpress | Premium Food Delivery</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="navbar">
+      <a href="#" class="brand" onclick="showView('menu')">
+        <span>🍕</span> FoodExpress
+      </a>
+      
+      <!-- Search Input -->
+      <div class="search-bar">
+        <span style="font-size: 1.1rem; color: var(--text-muted);">🔍</span>
+        <input type="text" id="search-input" placeholder="Search delicious dishes..." oninput="handleSearch()">
+      </div>
+      
+      <!-- Actions -->
+      <div class="nav-actions">
+        <!-- Light / Dark theme switch -->
+        <div class="switch-container">
+          <span>🌙</span>
+          <label class="switch">
+            <input type="checkbox" id="theme-switch" onchange="toggleTheme()">
+            <span class="slider"></span>
+          </label>
+          <span>☀️</span>
+        </div>
+
+        <!-- Admin toggle switch (hidden unless admin role) -->
+        <div class="switch-container" id="admin-toggle-container" style="display: none;">
+          <span>Admin</span>
+          <label class="switch">
+            <input type="checkbox" id="admin-switch" onchange="toggleAdminMode()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Cart Button -->
+        <button class="btn-icon" id="cart-btn" onclick="toggleCartDrawer(true)" title="View Cart">
+          <span>🛒</span>
+          <span class="badge" id="cart-badge" style="display: none;">0</span>
+        </button>
+
+        <!-- User Authentication UI -->
+        <div id="user-ui">
+          <button class="btn btn-secondary" onclick="openModal('login')">Log In</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content Views -->
+    <main class="main-content">
+      
+      <!-- 1. MENU VIEW (Default) -->
+      <section id="menu-view" class="view-section active">
+        <!-- Hero Banner -->
+        <div class="hero">
+          <h1>Savory Dishes Delivered To Your Door</h1>
+          <p>Satisfy your cravings with premium recipes made from the finest ingredients, delivered fresh and fast.</p>
+        </div>
+
+        <!-- Categories Chip Row -->
+        <div class="categories-container" id="categories-container">
+          <div class="category-chip active" onclick="selectCategory('All')" data-category="All">
+            <span class="icon">✨</span> All Items
+          </div>
+          <div class="category-chip" onclick="selectCategory('Pizza')" data-category="Pizza">
+            <span class="icon">🍕</span> Pizza
+          </div>
+          <div class="category-chip" onclick="selectCategory('Burgers')" data-category="Burgers">
+            <span class="icon">🍔</span> Burgers
+          </div>
+          <div class="category-chip" onclick="selectCategory('Asian')" data-category="Asian">
+            <span class="icon">🍜</span> Asian
+          </div>
+          <div class="category-chip" onclick="selectCategory('Desserts')" data-category="Desserts">
+            <span class="icon">🍰</span> Desserts
+          </div>
+          <div class="category-chip" onclick="selectCategory('Beverages')" data-category="Beverages">
+            <span class="icon">🥤</span> Beverages
+          </div>
+        </div>
+
+        <!-- Filters (Veg, price sorting) -->
+        <div class="filters-row">
+          <div class="veg-filter-group">
+            <button class="filter-btn active" id="filter-all" onclick="selectDiet('all')">All</button>
+            <button class="filter-btn filter-btn-veg" id="filter-veg" onclick="selectDiet('veg')">Veg Only</button>
+            <button class="filter-btn filter-btn-nonveg" id="filter-nonveg" onclick="selectDiet('nonveg')">Non-Veg</button>
+          </div>
+          
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Sort By:</span>
+            <select class="admin-select" id="sort-select" onchange="handleSort()" style="padding: 0.5rem 1rem; border-radius: var(--radius-full);">
+              <option value="default">Popularity</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="name-asc">Alphabetical (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Food Listings -->
+        <div class="food-grid" id="food-grid">
+          <!-- Food Cards populated dynamically -->
+          <div style="text-align: center; grid-column: 1/-1; padding: 3rem; color: var(--text-secondary);">
+            Loading yummy meals...
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. CHECKOUT VIEW -->
+      <section id="checkout-view" class="view-section">
+        <div class="back-link" onclick="showView('menu')">← Back to Menu</div>
+        <h2 class="section-title">🛒 Checkout</h2>
+        
+        <div class="checkout-layout">
+          <!-- Form Panel -->
+          <div>
+            <form id="checkout-form" onsubmit="handlePlaceOrder(event)">
+              <div class="checkout-card">
+                <h3 class="checkout-card-title">1. Delivery Address</h3>
+                <div class="form-group">
+                  <label class="form-label" for="checkout-name">Recipient Name</label>
+                  <input type="text" id="checkout-name" class="form-input" required placeholder="Sagar">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="checkout-phone">Phone Number</label>
+                  <input type="tel" id="checkout-phone" class="form-input" required placeholder="+91 98765 43210">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="checkout-address">Full Address</label>
+                  <textarea id="checkout-address" class="form-input" rows="3" required placeholder="Flat No. 102, Building A, Park Avenue Street, Mumbai, Maharashtra - 400001"></textarea>
+                </div>
+              </div>
+
+              <div class="checkout-card">
+                <h3 class="checkout-card-title">2. Payment (Mock Demo)</h3>
+                <div style="margin-bottom: 1.25rem; font-size: 0.85rem; color: var(--text-secondary); background: var(--border); padding: 0.75rem 1rem; border-radius: var(--radius-sm);">
+                  💳 Sandbox environment. No real funds will be processed.
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="checkout-card">Card Number</label>
+                  <input type="text" id="checkout-card" class="form-input" required placeholder="4111 2222 3333 4444" pattern="\d{16}" title="Please enter a 16-digit card number">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                  <div class="form-group">
+                    <label class="form-label" for="checkout-expiry">Expiry Date</label>
+                    <input type="text" id="checkout-expiry" class="form-input" required placeholder="12/29">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="checkout-cvv">CVV</label>
+                    <input type="password" id="checkout-cvv" class="form-input" required placeholder="•••" pattern="\d{3}" title="Please enter a 3-digit CVV">
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: var(--radius-md);">
+                Confirm & Place Order
+              </button>
+            </form>
+          </div>
+
+          <!-- Order Summary Card -->
+          <div>
+            <div class="checkout-card">
+              <h3 class="checkout-card-title">Order Summary</h3>
+              <div id="checkout-summary-list" style="margin-bottom: 1rem;">
+                <!-- Summary items rendered dynamically -->
+              </div>
+              
+              <div class="checkout-summary-item">
+                <span>Subtotal</span>
+                <span id="checkout-subtotal">$0.00</span>
+              </div>
+              <div class="checkout-summary-item">
+                <span>Delivery Charge</span>
+                <span style="color: var(--success); font-weight: 600;">FREE</span>
+              </div>
+              <div class="checkout-summary-item">
+                <span>Tax (GST 5%)</span>
+                <span id="checkout-tax">$0.00</span>
+              </div>
+              
+              <div class="checkout-total-row">
+                <span>Grand Total</span>
+                <span id="checkout-grand-total">$0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. ORDER TRACKING VIEW -->
+      <section id="tracking-view" class="view-section">
+        <div class="back-link" onclick="showView('menu')">← Back to Menu</div>
+        <h2 class="section-title" style="justify-content: center;">📍 Order Tracking</h2>
+        
+        <div class="tracking-container">
+          <div class="order-meta-info">
+            <div style="font-weight: 700; font-size: 1.15rem; color: var(--primary);">Order #<span id="track-id">0</span></div>
+            <div style="color: var(--text-secondary); margin-top: 0.25rem;">Placed at <span id="track-time">--:--</span></div>
+          </div>
+          
+          <div class="timeline">
+            <!-- Step 1: PENDING -->
+            <div class="timeline-step" id="step-pending">
+              <div class="timeline-bullet"></div>
+              <div class="timeline-content">
+                <h3>Order Placed</h3>
+                <p>Waiting for restaurant confirmation.</p>
+              </div>
+            </div>
+            
+            <!-- Step 2: PREPARING -->
+            <div class="timeline-step" id="step-preparing">
+              <div class="timeline-bullet"></div>
+              <div class="timeline-content">
+                <h3>Preparing Food</h3>
+                <p>Our chefs are crafting your gourmet meal.</p>
+              </div>
+            </div>
+            
+            <!-- Step 3: OUT_FOR_DELIVERY -->
+            <div class="timeline-step" id="step-delivery">
+              <div class="timeline-bullet"></div>
+              <div class="timeline-content">
+                <h3>Out for Delivery</h3>
+                <p>Our delivery partner is heading your way.</p>
+              </div>
+            </div>
+            
+            <!-- Step 4: DELIVERED -->
+            <div class="timeline-step" id="step-delivered">
+              <div class="timeline-bullet"></div>
+              <div class="timeline-content">
+                <h3>Delivered</h3>
+                <p>Enjoy your hot and tasty food!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. ORDER HISTORY VIEW -->
+      <section id="history-view" class="view-section">
+        <div class="back-link" onclick="showView('menu')">← Back to Menu</div>
+        <h2 class="section-title">🕒 Your Order History</h2>
+        
+        <div class="order-history-list" id="order-history-list">
+          <!-- Past orders populated dynamically -->
+          <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            No past orders found. Let's order some delicious meals!
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. ADMIN VIEW -->
+      <section id="admin-view" class="view-section">
+        <div class="back-link" onclick="showView('menu')">← Exit Admin Panel</div>
+        <h2 class="section-title">⚙️ Admin Dashboard</h2>
+
+        <div class="admin-grid">
+          <!-- Orders Management Card -->
+          <div class="admin-card">
+            <h3 style="margin-bottom: 1.25rem;">Active Customer Orders</h3>
+            <div class="admin-table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Delivery Info</th>
+                    <th>Status Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-orders-list">
+                  <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted);">No orders found.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Add Food Catalog Card -->
+          <div class="admin-card">
+            <h3 style="margin-bottom: 1.25rem;">Add New Menu Item</h3>
+            <form id="admin-add-food-form" onsubmit="handleAdminAddFood(event)">
+              <div class="form-group">
+                <label class="form-label" for="food-name">Food Name</label>
+                <input type="text" id="food-name" class="form-input" required placeholder="e.g. Classic Margherita">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="food-category">Category</label>
+                <select id="food-category" class="form-input" required style="cursor: pointer;">
+                  <option value="Pizza">Pizza</option>
+                  <option value="Burgers">Burgers</option>
+                  <option value="Asian">Asian</option>
+                  <option value="Desserts">Desserts</option>
+                  <option value="Beverages">Beverages</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="food-price">Price ($)</label>
+                <input type="number" id="food-price" class="form-input" required step="0.01" min="0" placeholder="e.g. 12.99">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="food-image">Image URL</label>
+                <input type="url" id="food-image" class="form-input" required placeholder="https://images.unsplash.com/...">
+              </div>
+              <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem;">
+                <span class="form-label" style="margin-bottom: 0;">Dietary Type</span>
+                <div class="switch-container">
+                  <span>Non-Veg</span>
+                  <label class="switch">
+                    <input type="checkbox" id="food-is-veg" checked>
+                    <span class="slider"></span>
+                  </label>
+                  <span>Veg</span>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top: 1.25rem;">
+                <label class="form-label" for="food-desc">Description</label>
+                <textarea id="food-desc" class="form-input" rows="3" placeholder="Explain the ingredients and preparation..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: var(--radius-md); margin-top: 1rem;">
+                ➕ Add Item to Menu
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Side Cart Drawer Overlay -->
+    <div class="cart-drawer-overlay" id="cart-drawer-overlay" onclick="toggleCartDrawer(false)"></div>
+    
+    <!-- Side Cart Drawer -->
+    <div class="cart-drawer" id="cart-drawer">
+      <div class="cart-header">
+        <h3 style="font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>🛒</span> Shopping Cart
+        </h3>
+        <button class="btn-icon" onclick="toggleCartDrawer(false)" style="border: none; font-size: 1.2rem;">✕</button>
+      </div>
+      
+      <div class="cart-body" id="cart-items-container">
+        <!-- Cart Items list rendered dynamically -->
+      </div>
+      
+      <div class="cart-footer">
+        <div class="cart-total-row">
+          <span>Subtotal</span>
+          <span id="cart-subtotal">$0.00</span>
+        </div>
+        <button class="btn btn-primary" style="width: 100%; padding: 0.9rem; border-radius: var(--radius-md);" onclick="handleCheckoutBtn()">
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="login-modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">🔓 Welcome Back</h3>
+          <button class="btn-icon" onclick="closeModal('login')" style="border: none; font-size: 1rem;">✕</button>
+        </div>
+        <form onsubmit="handleLoginSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email Address</label>
+            <input type="email" id="login-email" class="form-input" required placeholder="customer@gmail.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-input" required placeholder="••••••••">
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Sign In</button>
+            <div class="modal-alt-text">
+              Don't have an account? <span class="modal-alt-link" onclick="openAltModal('login', 'register')">Sign Up</span>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal-overlay" id="register-modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">✨ Create Account</h3>
+          <button class="btn-icon" onclick="closeModal('register')" style="border: none; font-size: 1rem;">✕</button>
+        </div>
+        <form onsubmit="handleRegisterSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" for="register-name">Full Name</label>
+            <input type="text" id="register-name" class="form-input" required placeholder="John Doe">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-email">Email Address</label>
+            <input type="email" id="register-email" class="form-input" required placeholder="john@gmail.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-password">Password</label>
+            <input type="password" id="register-password" class="form-input" required placeholder="••••••••">
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem;">
+            <span class="form-label" style="margin-bottom: 0;">Account Role</span>
+            <div class="switch-container">
+              <span>Customer</span>
+              <label class="switch">
+                <input type="checkbox" id="register-is-admin">
+                <span class="slider"></span>
+              </label>
+              <span>Admin</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+            <div class="modal-alt-text">
+              Already have an account? <span class="modal-alt-link" onclick="openAltModal('register', 'login')">Log In</span>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
